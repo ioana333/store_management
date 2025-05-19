@@ -21,7 +21,8 @@ import java.nio.file.Paths;
  * </ul>
  */
 
-public class PDFGenerator {
+public class PDFGenerator
+{
     public static void generateBillPDF(Bill bill, String fileName) {
         Document document = new Document();
 

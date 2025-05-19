@@ -41,10 +41,14 @@ public class AbstractDAO<T>
         List<T> list = new ArrayList<>();
         String query = "SELECT * FROM " + type.getSimpleName().toLowerCase();
 
-        try(Connection connection = ConnectionFactory.getConnection();
-            PreparedStatement statement = connection.prepareStatement(query);
-            ResultSet result = statement.executeQuery())
+        Connection connection = ConnectionFactory.getConnection();
+        PreparedStatement statement = null;
+        ResultSet result = null;
+        try
         {
+            statement = connection.prepareStatement(query);
+            result = statement.executeQuery();
+
             while (result.next())
             {
                 T instance = type.getDeclaredConstructor().newInstance();
@@ -64,6 +68,12 @@ public class AbstractDAO<T>
         catch (Exception e)
         {
             e.printStackTrace();
+        }
+        finally
+        {
+            ConnectionFactory.close(result);
+            ConnectionFactory.close(statement);
+            ConnectionFactory.close(connection);
         }
         return list;
     }
@@ -86,9 +96,14 @@ public class AbstractDAO<T>
         String query = "INSERT INTO " + type.getSimpleName().toLowerCase() +
                 " (" + columns.substring(0, columns.length()-1) +
                 " ) VALUES (" + values.substring(0, values.length()-1) + " )";
-        try(Connection connection = ConnectionFactory.getConnection();
-            PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS))
+
+        Connection connection = ConnectionFactory.getConnection();
+        PreparedStatement statement = null;
+        ResultSet result = null;
+        try
         {
+
+            statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             int i = 1;
             for (Field field : fields)
             {
@@ -101,7 +116,7 @@ public class AbstractDAO<T>
             }
 
             statement.executeUpdate();
-            ResultSet result = statement.getGeneratedKeys();
+            result = statement.getGeneratedKeys();
             if(result.next())
             {
                 return result.getInt(1);
@@ -110,6 +125,12 @@ public class AbstractDAO<T>
         catch (Exception e)
         {
             e.printStackTrace();
+        }
+        finally
+        {
+            ConnectionFactory.close(result);
+            ConnectionFactory.close(statement);
+            ConnectionFactory.close(connection);
         }
 
         return -1;
@@ -120,11 +141,14 @@ public class AbstractDAO<T>
         T instance = null;
         String query = "SELECT * FROM " + type.getSimpleName().toLowerCase() + " WHERE id = ?";
 
-        try(Connection connection = ConnectionFactory.getConnection();
-            PreparedStatement statement = connection.prepareStatement(query))
+        Connection connection = ConnectionFactory.getConnection();
+        PreparedStatement statement = null;
+        ResultSet result = null;
+        try
         {
+            statement = connection.prepareStatement(query);
             statement.setInt(1, id);
-            ResultSet result = statement.executeQuery();
+            result = statement.executeQuery();
             if(result.next())
             {
                 instance = type.getDeclaredConstructor().newInstance();
@@ -140,6 +164,12 @@ public class AbstractDAO<T>
         {
             e.printStackTrace();
         }
+        finally
+        {
+            ConnectionFactory.close(result);
+            ConnectionFactory.close(statement);
+            ConnectionFactory.close(connection);
+        }
 
         return instance;
     }
@@ -148,15 +178,23 @@ public class AbstractDAO<T>
     {
         String query = "DELETE FROM " + type.getSimpleName().toLowerCase() + " WHERE id = ?";
 
-        try(Connection connection = ConnectionFactory.getConnection();
-            PreparedStatement statement = connection.prepareStatement(query))
+
+        Connection connection = ConnectionFactory.getConnection();
+        PreparedStatement statement = null;
+        try
         {
+            statement = connection.prepareStatement(query);
             statement.setInt(1, id);
             statement.executeUpdate();
         }
         catch (Exception e)
         {
             e.printStackTrace();
+        }
+        finally
+        {
+            ConnectionFactory.close(statement);
+            ConnectionFactory.close(connection);
         }
     }
 
@@ -193,9 +231,11 @@ public class AbstractDAO<T>
 
         String query = "UPDATE " + type.getSimpleName().toLowerCase() + " SET " + setClause + " WHERE id = ?";
 
-        try(Connection connection = ConnectionFactory.getConnection();
-            PreparedStatement  statement = connection.prepareStatement(query))
+        Connection connection = ConnectionFactory.getConnection();
+        PreparedStatement  statement = null;
+        try
         {
+            statement = connection.prepareStatement(query);
             int i = 1;
             for(Field field : fields)
             {
@@ -214,6 +254,11 @@ public class AbstractDAO<T>
         catch (Exception e)
         {
             e.printStackTrace();
+        }
+        finally
+        {
+            ConnectionFactory.close(statement);
+            ConnectionFactory.close(connection);
         }
     }
 
